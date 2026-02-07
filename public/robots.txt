@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /convert/
+Disallow: /download
+
+Sitemap: https://ipdfjpg.com/sitemap.xml

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ipdfjpg.com | Fast PDF & JPG Converter (Free, Secure, No Sign-Up)</title>
+  <meta name="description" content="Convert PDF to JPG and JPG to PDF instantly. Free, secure, mobile-friendly tools with no data stored. Batch convert up to 20 files and download in seconds.">
+  <meta name="keywords" content="pdf to jpg, jpg to pdf, convert pdf, convert jpg, online converter, free converter, secure file converter">
+  <link rel="canonical" href="https://ipdfjpg.com/">
+  <meta property="og:title" content="ipdfjpg.com | Fast PDF & JPG Converter">
+  <meta property="og:description" content="Lightning-fast PDF to JPG and JPG to PDF conversion with zero sign-up, zero storage, and trusted privacy.">
+  <meta property="og:url" content="https://ipdfjpg.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://ipdfjpg.com/images/android-chrome-512x512.png">
+  <meta name="theme-color" content="#1f4b99">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="alternate icon" href="images/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+  
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-active-tab="jpg-to-pdf">
+  <header class="site-header">
+    <div class="site-shell navbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">ip</span>
+        <span class="brand-text">
+          <span>ipdfjpg.com</span>
+          <small>Fast file toolkit</small>
+        </span>
+      </a>
+      <nav id="nav-menu" class="nav-links" aria-label="Primary">
+        <div class="nav-dropdown">
+          <a href="/" class="nav-link-main">
+            Converters <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="dropdown-content">
+            <a href="/"><i class="fas fa-exchange-alt"></i> All Formats</a>
+            <a href="/pdf-to-jpg.html"><i class="fas fa-file-pdf"></i> PDF to JPG</a>
+            <a href="/jpg-to-pdf.html"><i class="fas fa-image"></i> JPG to PDF</a>
+            <a href="/word-to-pdf.html"><i class="fas fa-file-word"></i> Word to PDF</a>
+            <a href="/ppt-to-pdf.html"><i class="fas fa-file-powerpoint"></i> PPT to PDF</a>
+          </div>
+        </div>
+        <a href="/blog.html">Blog</a>
+        <a href="/about.html">About</a>
+        <a href="/contact.html">Contact</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="ghost-btn" href="#converter">Start now</a>
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="site-shell hero" id="converter">
+      <div>
+        <div class="badge-row">
+          <span class="badge"><i class="fas fa-shield-alt"></i> Secure HTTPS</span>
+          <span class="badge"><i class="fas fa-lock"></i> No data stored</span>
+          <span class="badge"><i class="fas fa-infinity"></i> Free forever</span>
+        </div>
+        <h1>Free File Converter - PDF, JPG, Word, PowerPoint</h1>
+        <p>Convert files instantly. No registration, no email required. All formats supported with secure processing.</p>
+        <div class="hero-meta">
+          <div class="meta-card"><strong>100MB</strong> per file. Batch upload up to 20 images.</div>
+          <div class="meta-card"><strong>Edge optimized</strong> Runs fast on mobile and desktop.</div>
+          <div class="meta-card"><strong>Instant deletion</strong> Temporary processing only.</div>
+        </div>
+      </div>
+      <div class="tool-panel modern-converter">
+        <!-- Format Selection -->
+        <div class="format-selector">
+          <div class="format-group">
+            <label>From:</label>
+            <select id="source-format" class="format-dropdown">
+              <option value="jpg">JPG/JPEG</option>
+              <option value="pdf">PDF</option>
+              <option value="docx">Word (DOCX)</option>
+              <option value="pptx">PowerPoint (PPTX)</option>
+            </select>
+          </div>
+          <div class="format-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+          <div class="format-group">
+            <label>To:</label>
+            <select id="target-format" class="format-dropdown">
+              <option value="pdf">PDF</option>
+              <option value="jpg">JPG/JPEG</option>
+              <option value="docx">Word (DOCX)</option>
+              <option value="pptx">PowerPoint (PPTX)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="upload-container">
+          <div class="upload-area" id="upload-area">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3 id="upload-title">Drop your files here</h3>
+            <p id="upload-description">or click to browse</p>
+            <label for="file-input" class="upload-btn-modern">
+              <i class="fas fa-folder-open"></i> Choose Files
+            </label>
+            <input type="file" id="file-input" multiple hidden>
+            <div class="upload-info">
+              <span class="info-badge"><i class="fas fa-check"></i> Up to 20 files</span>
+              <span class="info-badge"><i class="fas fa-check"></i> 100MB max each</span>
+              <span class="info-badge"><i class="fas fa-lock"></i> Secure & private</span>
+            </div>
+          </div>
+
+          <!-- File Preview List -->
+          <div class="file-preview-container" id="file-preview-container" style="display: none;">
+            <div class="preview-header">
+              <h4><i class="fas fa-files"></i> Selected Files</h4>
+              <button class="clear-all-btn" id="clear-all-btn">
+                <i class="fas fa-trash"></i> Clear All
+              </button>
+            </div>
+            <div class="file-previews" id="file-previews"></div>
+          </div>
+        </div>
+
+        <!-- Convert Button -->
+        <button class="convert-btn-modern" id="convert-btn" disabled>
+          <i class="fas fa-sync-alt"></i> Convert Files
+        </button>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progress-container" style="display: none;">
+          <div class="progress-header">
+            <span id="progress-text">Converting...</span>
+            <span id="progress-percentage">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="result-container-modern" id="result-container" style="display: none;">
+          <div class="result-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>Conversion Complete!</h3>
+          <div class="result-actions">
+            <a href="#" id="download-link" class="download-btn-modern">
+              <i class="fas fa-download"></i> Download Files
+            </a>
+            <button id="new-conversion-btn" class="new-conversion-btn-modern">
+              <i class="fas fa-plus"></i> Convert More
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="site-shell section">
+      <h2>Why Choose Our Converter?</h2>
+      <p>Professional file conversion tool trusted by students, businesses, and professionals worldwide.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Speed built-in</h3>
+          <p>Edge-optimized processing, smart image resizing, and compressed outputs keep downloads light without sacrificing clarity.</p>
+        </div>
+        <div class="card">
+          <h3>Privacy first</h3>
+          <p>Uploads stay in temporary memory, we never inspect your content, and HTTPS protects every request end to end.</p>
+        </div>
+        <div class="card">
+          <h3>Zero friction</h3>
+          <p>No accounts, no email gates. Drop your files, click convert, and get your result with a single download click.</p>
+        </div>
+        <div class="card">
+          <h3>Dependable quality</h3>
+          <p>Adaptive DPI keeps text crisp for print and presentations while balancing file size for quick sharing.</p>
+        </div>
+      </div>
+      <div class="trust-row">
+        <div class="trust-pill"><i class="fas fa-lock"></i> No data stored</div>
+        <div class="trust-pill"><i class="fas fa-shield-alt"></i> Secure tool</div>
+        <div class="trust-pill"><i class="fas fa-heart"></i> Free forever</div>
+      </div>
+    </section>
+
+    <section class="site-shell section">
+      <h2>How it works</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>1. Upload</h3>
+          <p>Drag-and-drop or tap the upload button. We support JPG/JPEG and PDF up to 100MB, with batch support for up to 20 images.</p>
+        </div>
+        <div class="card">
+          <h3>2. Convert</h3>
+          <p>Our server optimizes your file, preserves color accuracy, and converts with reliable compression that keeps text sharp.</p>
+        </div>
+        <div class="card">
+          <h3>3. Download</h3>
+          <p>Grab your PDF or JPG instantly. Files are staged temporarily, then automatically purged to respect your privacy.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="site-shell section" id="faq">
+      <h2>Quick answers</h2>
+      <div class="grid">
+        <div class="faq-item">
+          <h4>Do you store my files?</h4>
+          <p>No. Files are processed automatically, kept temporarily to complete the task, and then deleted.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Is it really free?</h4>
+          <p>Yes. Core tools remain free forever. Light advertising supports the service and keeps the tools online.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Will my images stay sharp?</h4>
+          <p>We target a balanced resolution that works for print and screen. JPGs are optimized around 2480x3508 px max.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Can I use it on mobile?</h4>
+          <p>Absolutely. The UI adapts to phones and tablets with large tap targets and fast loading.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="site-shell section">
+      <h2>Blog & learning</h2>
+      <p>Up-to-date tips on preparing PDFs, shrinking images for the web, and keeping document workflows secure.</p>
+      <div class="grid">
+        <div class="card">
+          <h3><a href="/blog.html#article-pdf-to-jpg">Convert PDF pages into gallery-ready JPGs</a></h3>
+          <p>Learn how to keep clarity while compressing for social and email.</p>
+        </div>
+        <div class="card">
+          <h3><a href="/blog.html#article-jpg-to-pdf">Batch JPG to PDF for clean submissions</a></h3>
+          <p>Set up consistent margins and print-perfect PDFs every time.</p>
+        </div>
+        <div class="card">
+          <h3><a href="/blog.html#article-privacy">Privacy-first conversion habits</a></h3>
+          <p>Follow a checklist for secure file handling on shared devices.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="site-shell columns">
+      <div>
+        <div class="brand" style="color:#e2e8f0;">
+          <span class="brand-mark">ip</span>
+          <span class="brand-text">
+            <span>ipdfjpg.com</span>
+            <small style="color:#cbd5e1;">Fast, private conversions</small>
+          </span>
+        </div>
+        <p>Privacy-friendly PDF and JPG tools built for speed, clarity, and trust.</p>
+      </div>
+      <div>
+        <h4 style="margin-top:0;">Tools</h4>
+        <p><a href="/jpg-to-pdf.html">JPG to PDF</a><br>
+           <a href="/pdf-to-jpg.html">PDF to JPG</a></p>
+      </div>
+      <div>
+        <h4 style="margin-top:0;">Company</h4>
+        <p><a href="/about.html">About</a><br>
+           <a href="/blog.html">Blog</a><br>
+           <a href="/contact.html">Contact</a></p>
+      </div>
+      <div>
+        <h4 style="margin-top:0;">Legal</h4>
+        <p><a href="/privacy.html">Privacy Policy</a><br>
+           <a href="/terms.html">Terms &amp; Conditions</a><br>
+           <a href="/cookie-policy.html">Cookie Policy</a><br>
+           <a href="#" id="cookie-settings">Cookie settings</a></p>
+        <small>© 2025 ipdfjpg.com</small>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/consent.js"></script>
+  <script src="js/modern-converter.js"></script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "ipdfjpg.com - File Converter",
+  "short_name": "ipdfjpg.com",
+  "description": "Free online JPG to PDF and PDF to JPG converter",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFA500",
+  "theme_color": "#FFA500",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+} 

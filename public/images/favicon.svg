@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Orange background -->
+  <rect width="512" height="512" fill="#FFA500" rx="50"/>
+  
+  <!-- Dark blue folder with upload arrow -->
+  <g transform="translate(60, 140)">
+    <!-- Folder shape -->
+    <path d="M 40 40 
+             C 40 20, 60 0, 80 0
+             L 140 0
+             L 180 40
+             L 340 40
+             C 360 40, 380 60, 380 80
+             L 380 280
+             C 380 300, 360 320, 340 320
+             L 40 320
+             C 20 320, 0 300, 0 280
+             L 0 80
+             C 0 60, 20 40, 40 40 Z" 
+          fill="#1a3a52" />
+    
+    <!-- Upload arrow -->
+    <g transform="translate(190, 100)">
+      <!-- Arrow shaft -->
+      <rect x="-30" y="40" width="60" height="120" fill="#f5f5dc" rx="10"/>
+      <!-- Arrow head -->
+      <path d="M -60 60 L 0 0 L 60 60 L 30 60 L 0 30 L -30 60 Z" fill="#f5f5dc"/>
+    </g>
+  </g>
+</svg> 

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JPG to PDF Converter | ipdfjpg.com (Batch, Print-Ready, Private)</title>
+  <meta name="description" content="Turn JPG images into polished PDFs for print, school, or client handoffs. Batch up to 20 photos, reorder easily, and download in seconds with no sign-up.">
+  <link rel="canonical" href="https://ipdfjpg.com/jpg-to-pdf">
+  <meta property="og:title" content="JPG to PDF Converter | ipdfjpg.com">
+  <meta property="og:description" content="Create clean PDFs from photos, scans, and artwork. Free, secure, and mobile-ready.">
+  <meta property="og:url" content="https://ipdfjpg.com/jpg-to-pdf">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://ipdfjpg.com/images/android-chrome-512x512.png">
+  <meta name="theme-color" content="#1f4b99">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <link rel="alternate icon" href="images/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-active-tab="jpg-to-pdf">
+  <header class="site-header">
+    <div class="site-shell navbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">ip</span>
+        <span class="brand-text">
+          <span>ipdfjpg.com</span>
+          <small>Image → PDF made easy</small>
+        </span>
+      </a>
+      <nav id="nav-menu" class="nav-links" aria-label="Primary">
+        <a href="/pdf-to-jpg.html">PDF to JPG</a>
+        <a href="/jpg-to-pdf.html">JPG to PDF</a>
+        <a href="/blog.html">Blog</a>
+        <a href="/about.html">About</a>
+        <a href="/contact.html">Contact</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="ghost-btn" href="#converter">Start now</a>
+        <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="site-shell hero" id="converter">
+      <div>
+        <div class="badge-row">
+          <span class="badge"><i class="fas fa-lock"></i> No data stored</span>
+          <span class="badge"><i class="fas fa-check-circle"></i> Print-friendly PDFs</span>
+          <span class="badge"><i class="fas fa-mobile-alt"></i> Mobile ready</span>
+        </div>
+        <h1>JPG to PDF for clean submissions</h1>
+        <p>Combine photos, scans, and artwork into a polished PDF with accurate sizing and balanced compression. Ideal for homework, portfolios, invoices, and design mockups that must look trustworthy on every screen.</p>
+        <div class="hero-meta">
+          <div class="meta-card"><strong>Batch up to 20</strong> JPGs in one go.</div>
+          <div class="meta-card"><strong>Quality tuned</strong> Sharp text, balanced file size.</div>
+          <div class="meta-card"><strong>Free forever</strong> Supported by light ads, not paywalls.</div>
+        </div>
+      </div>
+      <div class="tool-panel">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="jpg-to-pdf">JPG to PDF</button>
+          <button class="tab-btn" data-tab="pdf-to-jpg">PDF to JPG</button>
+        </div>
+
+        <div class="tab-content active" id="jpg-to-pdf">
+          <div class="upload-container">
+            <div class="upload-area" id="jpg-upload-area">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <h3>Drop JPG files here</h3>
+              <p>Upload up to 20 images. We keep the order and unify sizing.</p>
+              <label for="jpg-file-input" class="upload-btn">Browse JPGs</label>
+              <input type="file" id="jpg-file-input" accept=".jpg,.jpeg" multiple hidden>
+            </div>
+            <div class="file-list" id="jpg-file-list"></div>
+          </div>
+          <button class="convert-btn" id="jpg-to-pdf-btn" disabled>Convert JPG to PDF</button>
+        </div>
+
+        <div class="tab-content" id="pdf-to-jpg">
+          <div class="upload-container">
+            <div class="upload-area" id="pdf-upload-area">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <h3>Drop a PDF here</h3>
+              <p>Need a preview? Convert the first page to a JPG.</p>
+              <label for="pdf-file-input" class="upload-btn">Browse PDF</label>
+              <input type="file" id="pdf-file-input" accept=".pdf" hidden>
+              <p style="font-size: 13px; color: #475569; margin-top: 10px;">Best for covers and thumbnails.</p>
+            </div>
+            <div class="file-list" id="pdf-file-list"></div>
+          </div>
+          <button class="convert-btn" id="pdf-to-jpg-btn" disabled>Convert PDF to JPG</button>
+        </div>
+
+        <div class="result-container" id="result-container" style="display: none;">
+          <h3>Your PDF is ready</h3>
+          <div class="result-actions">
+            <a href="#" id="download-link" class="download-btn">Download</a>
+            <button id="new-conversion-btn" class="new-conversion-btn">Start another</button>
+          </div>
+        </div>
+        <div class="loading-overlay" id="loading-overlay">
+          <div class="spinner"></div>
+          <p>Building your PDF...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="site-shell section content">
+      <article>
+        <h2>What the JPG to PDF converter does</h2>
+        <p>This tool merges individual JPG or JPEG images into a single PDF that is ready for printing, archiving, or professional sharing. It respects the order of your uploads, normalizes orientation, and ensures that scanned notes or photographed documents line up evenly on every page. Whether you are a student submitting worksheets, an accountant bundling receipts, or a designer exporting mockups, you get a tidy, multi-page PDF without hunting for desktop software.</p>
+        <p>The output PDF uses high-quality compression with sensible margins, so text remains readable and photos stay vibrant. Because everything runs in the browser and on secure servers, there is no watermarking or branding added to your pages. You simply receive a clean PDF that you can attach, print, or archive.</p>
+      </article>
+
+      <article>
+        <h2>How conversion works behind the scenes</h2>
+        <p>When you add your images, the converter sanitizes filenames, checks size limits, and creates a new PDF document. Each JPG is embedded in its own page; we resize images up to about 2480x3508 pixels (A4 at 300 DPI) so they look crisp while keeping file size manageable. The process balances compression and detail, so a hand-written note remains legible and a photograph retains color depth. Metadata about your upload never leaves the conversion pipeline, and temporary files are deleted automatically once you download.</p>
+        <p>Because the service is optimized for speed, you can upload up to 20 images without hitting timeouts on typical broadband or campus Wi-Fi. We use HTTPS for all transfers, and we do not store files beyond the short processing window required to deliver your PDF. This is the practical meaning of our “no data stored” badge.</p>
+      </article>
+
+      <article>
+        <h2>Step-by-step: create a polished PDF from JPGs</h2>
+        <p><strong>1. Add your images.</strong> Drag and drop multiple JPGs or tap the upload button. Keep filenames descriptive so you can spot the order quickly.</p>
+        <p><strong>2. Verify the list.</strong> The file tray shows each image name and size. Remove any extra shots with a single click before converting.</p>
+        <p><strong>3. Convert.</strong> Hit “Convert JPG to PDF.” We assemble the pages, align them edge-to-edge, and export a PDF that is ready for printing or emailing.</p>
+        <p><strong>4. Download and reuse.</strong> Grab the finished PDF and immediately start a new batch if needed—no refresh required.</p>
+      </article>
+
+      <article>
+        <h2>Benefits and use cases</h2>
+        <p><strong>Academic submissions.</strong> Teachers and professors often request PDFs. Snap photos of handwritten work, merge them here, and submit a single organized file that opens on any LMS.</p>
+        <p><strong>Client-ready handoffs.</strong> Agencies and freelancers can export design explorations or photography selects as PDFs with consistent sizing, keeping review cycles clean and professional.</p>
+        <p><strong>Receipt and expense bundles.</strong> Accounting teams prefer unified PDFs for reimbursement. Convert your travel receipts or invoices into one tidy package without exposing them to third-party storage.</p>
+        <p><strong>Creative portfolios.</strong> Artists and illustrators can merge page-sized JPGs into a PDF lookbook that prints well and uploads quickly to galleries or submission portals.</p>
+      </article>
+
+      <article>
+        <h2>Tips for the best results</h2>
+        <p>Photograph documents in good lighting to reduce noise before uploading. Crop edges in your camera roll so the converter can align pages evenly. If you want whitespace around each image, add a light border to your JPGs; otherwise we fill the page edge-to-edge to maximize readability. Keep each file under 100MB for smooth uploads; the sweet spot for speed is between 500KB and 4MB per photo.</p>
+        <p>When printing, choose “Actual Size” in your PDF viewer to preserve proportions. If you need to reduce the final PDF size further, run the resulting file through a PDF optimizer after downloading; because the base export from ipdfjpg.com is already efficient, you can usually shrink it another 20–30% without visible quality loss.</p>
+      </article>
+
+      <article>
+        <h2>FAQs about JPG to PDF on ipdfjpg.com</h2>
+        <p><strong>Do you rearrange pages?</strong> We keep the order you upload. If you need a different order, rename your files with prefixes (01, 02, 03) before uploading or remove and re-add them in sequence.</p>
+        <p><strong>Is there a page limit?</strong> The limit is 20 images per conversion to maintain speed and reliability. Run multiple batches if you have larger sets.</p>
+        <p><strong>Are my files watermarked?</strong> Never. The exported PDF is clean and unbranded so you can submit it for grades, client sign-off, or print.</p>
+        <p><strong>How is privacy handled?</strong> Files are processed over HTTPS, stored temporarily, and removed automatically once the conversion completes. We do not read or monetize the content of your uploads.</p>
+        <p><strong>Does it work on mobile data?</strong> Yes. The UI is touch-friendly, and conversions are tuned for slower connections so you can submit paperwork while on the move.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="site-shell columns">
+      <div>
+        <div class="brand" style="color:#e2e8f0;">
+          <span class="brand-mark">ip</span>
+          <span class="brand-text">
+            <span>ipdfjpg.com</span>
+            <small style="color:#cbd5e1;">Image workflows, simplified</small>
+          </span>
+        </div>
+        <p>Build spotless PDFs without extra software. Secure, fast, and free.</p>
+      </div>
+      <div>
+        <h4 style="margin-top:0;">Tools</h4>
+        <p><a href="/jpg-to-pdf.html">JPG to PDF</a><br>
+           <a href="/pdf-to-jpg.html">PDF to JPG</a></p>
+      </div>
+      <div>
+        <h4 style="margin-top:0;">Company</h4>
+        <p><a href="/about.html">About</a><br>
+           <a href="/blog.html">Blog</a><br>
+           <a href="/contact.html">Contact</a></p>
+      </div>
+      <div>
+        <h4 style="margin-top:0;">Legal</h4>
+        <p><a href="/privacy.html">Privacy Policy</a><br>
+           <a href="/terms.html">Terms &amp; Conditions</a><br>
+           <a href="/cookie-policy.html">Cookie Policy</a><br>
+           <a href="#" id="cookie-settings">Cookie settings</a></p>
+        <small>© 2025 ipdfjpg.com</small>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Redirect to main converter page with JPG to PDF preset
+    window.location.href = '/?from=jpg&to=pdf';
+  </script>
+  <script src="js/consent.js"></script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
