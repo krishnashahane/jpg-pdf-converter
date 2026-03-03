@@ -39,7 +39,7 @@
     ].join(';'));
 
     var text = document.createElement('div');
-    text.innerHTML = 'We use cookies to run this site and measure usage. Ads may be personalized to support our free service. See our <a href="/privacy" style="color:#93c5fd; text-decoration: underline;">Privacy Policy</a>.';
+    text.innerHTML = 'We use cookies to run this site and measure usage. See our <a href="/privacy" style="color:#93c5fd; text-decoration: underline;">Privacy Policy</a>.';
     text.style.flex = '1';
 
     var actions = document.createElement('div');

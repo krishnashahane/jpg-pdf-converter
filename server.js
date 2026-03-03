@@ -55,7 +55,7 @@ connectDB();
 
 // Use OS temp directory which works better across different environments
 const getTempDir = () => {
-  return process.env.VERCEL ? '/tmp' : os.tmpdir();
+  return os.tmpdir();
 };
 
 // Ensure directories exist
@@ -153,11 +153,11 @@ app.use((req, res, next) => {
   // Content Security Policy - prevent XSS and injection attacks
   res.header('Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://vercel.live https://*.vercel-scripts.com *.vercel-insights.com; " +
+    "script-src 'self' 'unsafe-inline'; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
     "img-src 'self' data: https:; " +
-    "connect-src 'self' https://www.google-analytics.com *.vercel-insights.com;"
+    "connect-src 'self';"
   );
 
   if (req.method === 'OPTIONS') {
@@ -815,5 +815,4 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Export the app for Vercel
-module.exports = app; 
+module.exports = app;

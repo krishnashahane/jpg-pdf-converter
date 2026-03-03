@@ -4,8 +4,8 @@
   "description": "Free online JPG to PDF and PDF to JPG converter",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFA500",
-  "theme_color": "#FFA500",
+  "background_color": "#1f4b99",
+  "theme_color": "#1f4b99",
   "orientation": "portrait-primary",
   "icons": [
     {
