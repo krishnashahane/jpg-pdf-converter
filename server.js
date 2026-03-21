@@ -23,14 +23,7 @@ const connectDB = async () => {
       return;
     }
     
-    // Fallback to a demo database for testing (read-only)
-    const demoUri = 'mongodb+srv://demo-user:demo123@cluster0.mongodb.net/fileconverter-demo?retryWrites=true&w=majority';
-    try {
-      await mongoose.connect(demoUri);
-      console.log('MongoDB connected with demo database');
-    } catch (demoError) {
-      console.log('Demo database unavailable, running without database');
-    }
+    console.log('No MONGODB_URI set, running without database');
   } catch (error) {
     console.error('MongoDB connection error (continuing without DB):', error);
   }
@@ -138,7 +131,11 @@ Object.entries(staticOverrides).forEach(([route, options]) => {
 // Security headers - protect against ALL attacks
 app.use((req, res, next) => {
   // CORS headers
-  res.header('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = ['https://ipdfjpg.com', 'http://localhost:3000'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
 

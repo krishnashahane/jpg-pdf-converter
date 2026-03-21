@@ -12,9 +12,7 @@
       localStorage.setItem('site_consent_status', value);
     } catch (e) {}
 
-    try {
-      // Placeholder for future analytics/consent integrations
-    } catch (e) {}
+    // consent stored
   }
 
   function createBanner() {

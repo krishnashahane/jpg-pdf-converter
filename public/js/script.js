@@ -245,23 +245,9 @@ function initConverter() {
         link.click();
         document.body.removeChild(link);
 
-        if (window.va) {
-          window.va('track', 'JPG to PDF Conversion', {
-            files_count: jpgFiles.length,
-            success: true
-          });
-        }
-
         resultContainer.style.display = 'block';
         downloadLink.href = downloadUrl;
       } else {
-        if (window.va) {
-          window.va('track', 'JPG to PDF Conversion', {
-            files_count: jpgFiles.length,
-            success: false,
-            error: data.error
-          });
-        }
         throw new Error(data.error || 'Conversion failed');
       }
     } catch (error) {
@@ -300,18 +286,8 @@ function initConverter() {
         hiddenDownloadLink.click();
         document.body.removeChild(hiddenDownloadLink);
 
-        if (window.va) {
-          window.va('track', 'PDF to JPG Conversion', { success: true });
-        }
-
         resultContainer.style.display = 'block';
       } else {
-        if (window.va) {
-          window.va('track', 'PDF to JPG Conversion', {
-            success: false,
-            error: data.error
-          });
-        }
         alert(data.error || 'Conversion failed: Unknown error');
       }
     } catch (error) {

@@ -339,15 +339,6 @@ function initModernConverter() {
       console.log('Server response:', responseText);
       const result = JSON.parse(responseText);
 
-      // Track analytics
-      if (window.va) {
-        window.va('track', 'Conversion', {
-          from: source,
-          to: target,
-          files: selectedFiles.length
-        });
-      }
-
       // Hide progress, show result
       setTimeout(() => {
         progressContainer.style.display = 'none';
