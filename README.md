@@ -1,4 +1,4 @@
-# JPG/PDF Converter
+# 🗂️ DocX
 
 A web application that allows users to convert JPG images to PDF and PDF files to JPG images. The application supports files up to 100MB in size.
 
