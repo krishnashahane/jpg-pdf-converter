@@ -238,15 +238,17 @@ function initConverter() {
 
       if (data.success) {
         const downloadUrl = data.downloadPath;
+        const name = data.filename || 'converted.pdf';
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = '';
+        link.download = name;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
         resultContainer.style.display = 'block';
         downloadLink.href = downloadUrl;
+        downloadLink.download = name;
       } else {
         throw new Error(data.error || 'Conversion failed');
       }
@@ -278,10 +280,12 @@ function initConverter() {
       const data = await response.json();
 
       if (data.success) {
+        const name = data.filename || 'converted.jpg';
         downloadLink.href = data.downloadPath;
+        downloadLink.download = name;
         const hiddenDownloadLink = document.createElement('a');
         hiddenDownloadLink.href = data.downloadPath;
-        hiddenDownloadLink.download = '';
+        hiddenDownloadLink.download = name;
         document.body.appendChild(hiddenDownloadLink);
         hiddenDownloadLink.click();
         document.body.removeChild(hiddenDownloadLink);

@@ -13,6 +13,9 @@ const pdfParse = require('pdf-parse');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Fail fast instead of buffering DB ops for 10s when MongoDB is not connected.
+mongoose.set('bufferCommands', false);
+
 // MongoDB connection - make it optional with automatic fallback
 const connectDB = async () => {
   try {
@@ -41,6 +44,45 @@ try {
   FileMetadata = mongoose.model('FileMetadata', fileMetadataSchema);
 } catch (error) {
   console.log('Running without MongoDB');
+}
+
+// Only write metadata when a live DB connection exists (readyState 1 = connected).
+const dbReady = () => Boolean(FileMetadata) && mongoose.connection.readyState === 1;
+
+// Return converted files inline as data URLs so a single request delivers the
+// result. Serverless instances have ephemeral /tmp, so a separate /download
+// request may miss the file; inlining makes downloads work every time.
+const MIME_BY_EXT = {
+  '.pdf': 'application/pdf',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+};
+const toDataUrl = (buffer, filename) => {
+  const mime = MIME_BY_EXT[path.extname(filename).toLowerCase()] || 'application/octet-stream';
+  return `data:${mime};base64,${Buffer.from(buffer).toString('base64')}`;
+};
+
+// pdfjs-dist and @napi-rs/canvas are ESM/prebuilt and serverless-friendly.
+// Lazy-import once and reuse so cold starts only pay the cost when needed.
+let _pdfjs, _canvasMod;
+async function renderPdfFirstPageToJpg(pdfBuffer) {
+  _pdfjs = _pdfjs || await import('pdfjs-dist/legacy/build/pdf.mjs');
+  _canvasMod = _canvasMod || await import('@napi-rs/canvas');
+  const doc = await _pdfjs.getDocument({
+    data: new Uint8Array(pdfBuffer),
+    disableFontFace: true
+  }).promise;
+  const page = await doc.getPage(1);
+  const base = page.getViewport({ scale: 1 });
+  // Cap the longest side at 2000px to bound memory and response size.
+  const scale = Math.min(2, 2000 / Math.max(base.width, base.height));
+  const viewport = page.getViewport({ scale });
+  const canvas = _canvasMod.createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return canvas.toBuffer('image/jpeg');
 }
 
 // Initialize MongoDB connection
@@ -269,7 +311,7 @@ app.post('/convert/jpg-to-pdf', upload.array('images', 20), async (req, res) => 
     
     // Store metadata in MongoDB
     try {
-      if (FileMetadata) {
+      if (dbReady()) {
         for (const file of uploadedFiles) {
           await FileMetadata.create({
             filename: file.originalname,
@@ -283,10 +325,11 @@ app.post('/convert/jpg-to-pdf', upload.array('images', 20), async (req, res) => 
       console.error('Error storing metadata:', dbError);
     }
     
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Successfully converted ${successCount} image(s) to PDF`,
-      downloadPath: `/download?file=${filename}`
+      filename,
+      downloadPath: toDataUrl(pdfBytes, filename)
     });
   } catch (error) {
     console.error('Error converting JPG to PDF:', error);
@@ -344,45 +387,15 @@ app.post('/convert/pdf-to-jpg', upload.single('pdf'), async (req, res) => {
         throw new Error('PDF has no pages');
       }
       
-      console.log(`PDF has ${pages.length} pages, converting first page`);
-      
-      // Create a new PDF with just the first page
-      const newPdfDoc = await PDFDocument.create();
-      const [firstPage] = await newPdfDoc.copyPages(pdfDoc, [0]);
-      newPdfDoc.addPage(firstPage);
-      
-      // Save as new PDF
-      const newPdfBytes = await newPdfDoc.save();
-      console.log(`New PDF created, size: ${newPdfBytes.length}`);
-      
-      // For now, we'll convert the PDF page to a high-quality image representation
-      // This is a working solution for serverless environments
-      const page = pages[0];
-      const { width, height } = page.getSize();
-      
-      // Create a canvas-like representation and convert to JPG
-      // This creates a simple colored rectangle as a placeholder
-      // In a full implementation, you'd render the actual PDF content
-      const imageWidth = Math.min(width, 1200);
-      const imageHeight = Math.min(height, 1600);
-      
-      // Create a simple image buffer representing the PDF page
-      const canvas = await sharp({
-        create: {
-          width: Math.round(imageWidth),
-          height: Math.round(imageHeight),
-          channels: 3,
-          background: { r: 255, g: 255, b: 255 }
-        }
-      })
-      .jpeg({ quality: 90 })
-      .toBuffer();
-      
-      console.log(`Created image buffer, size: ${canvas.length}`);
-      
+      console.log(`PDF has ${pages.length} pages, rendering first page`);
+
+      // Render the actual first page to a JPEG.
+      const jpgBuffer = await renderPdfFirstPageToJpg(pdfBytes);
+      console.log(`Rendered image buffer, size: ${jpgBuffer.length}`);
+
       // Save the image
       await fs.ensureDir(path.dirname(outputPath));
-      await fs.writeFile(outputPath, canvas);
+      await fs.writeFile(outputPath, jpgBuffer);
       
       console.log(`JPG saved to: ${outputPath}`);
       
@@ -396,7 +409,7 @@ app.post('/convert/pdf-to-jpg', upload.single('pdf'), async (req, res) => {
       
       // Store metadata in MongoDB if available
       try {
-        if (FileMetadata) {
+        if (dbReady()) {
           await FileMetadata.create({
             filename: req.file.originalname,
             conversionType: 'pdf-to-jpg',
@@ -411,7 +424,8 @@ app.post('/convert/pdf-to-jpg', upload.single('pdf'), async (req, res) => {
       res.json({
         success: true,
         message: 'PDF first page converted to JPG successfully',
-        downloadPath: `/download?file=${filename}`
+        filename,
+        downloadPath: toDataUrl(jpgBuffer, filename)
       });
       
     } catch (conversionError) {
@@ -514,7 +528,7 @@ app.post('/convert/multi-format', upload.array('files', 20), async (req, res) =>
 
     // Store metadata
     try {
-      if (FileMetadata) {
+      if (dbReady()) {
         for (const file of uploadedFiles) {
           await FileMetadata.create({
             filename: file.originalname,
@@ -527,9 +541,10 @@ app.post('/convert/multi-format', upload.array('files', 20), async (req, res) =>
       console.error('Error storing metadata:', dbError);
     }
 
+    const outputBuffer = await fs.readFile(outputPath);
     res.json({
       success: true,
-      downloadUrl: `/download?file=${filename}`,
+      downloadUrl: toDataUrl(outputBuffer, filename),
       filename: filename
     });
 
@@ -590,18 +605,10 @@ async function convertPdfToJpg(file) {
   const outputPath = path.join(getTempDir(), 'downloads', filename);
 
   try {
-    // Create a simple white placeholder image
-    // Note: Full PDF rendering requires poppler/ghostscript which isn't available in serverless
-    await sharp({
-      create: {
-        width: 800,
-        height: 1000,
-        channels: 3,
-        background: { r: 255, g: 255, b: 255 }
-      }
-    })
-    .jpeg({ quality: 90 })
-    .toFile(outputPath);
+    const pdfBuffer = await fs.readFile(file.path);
+    const jpgBuffer = await renderPdfFirstPageToJpg(pdfBuffer);
+    await fs.ensureDir(path.dirname(outputPath));
+    await fs.writeFile(outputPath, jpgBuffer);
 
     return { outputPath, filename };
   } catch (error) {
