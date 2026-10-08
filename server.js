@@ -716,7 +716,7 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ success: false, error: 'Invalid multipart upload.' });
   }
 
-  if (err && err.message === 'Only JPG, PDF, Word, and PowerPoint files are allowed!') {
+  if (err && err.message === 'Only JPG and PDF files are allowed!') {
     return res.status(415).json({ success: false, error: err.message });
   }
 
@@ -729,6 +729,5 @@ app.listen(PORT, () => {
     console.log(`Maximum file size: ${(100).toFixed(0)}MB`);
     console.log(`Temp directory: ${getTempDir()}`);
   });
-}
 
 module.exports = app;
