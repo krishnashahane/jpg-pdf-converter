@@ -11,7 +11,40 @@ const officegen = require('officegen');
 const pdfParse = require('pdf-parse');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_FILES = 20;
+const RATE_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT = 30;
+const requestCounts = new Map();
+
+function clientKey(req) {
+  return String(req.ip || req.socket?.remoteAddress || "unknown");
+}
+
+function rateLimit(req, res, next) {
+  const now = Date.now();
+  const key = clientKey(req);
+  const current = requestCounts.get(key);
+  if (!current || now - current.startedAt >= RATE_WINDOW_MS) {
+    requestCounts.set(key, { startedAt: now, count: 1 });
+    return next();
+  }
+  if (current.count >= RATE_LIMIT) {
+    res.setHeader("Retry-After", String(Math.ceil((RATE_WINDOW_MS - (now - current.startedAt)) / 1000)));
+    return res.status(429).json({ success: false, error: "Too many requests. Please try again shortly." });
+  }
+  current.count += 1;
+  return next();
+}
+
+function isJpegBuffer(buffer) {
+  return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+}
+
+function isPdfBuffer(buffer) {
+  return buffer.length >= 5 && buffer.subarray(0, 5).toString("ascii") === "%PDF-";
+}
 
 // Fail fast instead of buffering DB ops for 10s when MongoDB is not connected.
 mongoose.set('bufferCommands', false);
@@ -144,12 +177,17 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 } // 100MB
+  limits: {
+    fileSize: MAX_FILE_SIZE,
+    files: MAX_FILES,
+    fields: 20,
+    parts: MAX_FILES + 20
+  }
 });
 
 // Parse JSON and URL-encoded bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '64kb' }));
+app.use(express.urlencoded({ extended: true, limit: '64kb' }));
 
 // Serve static files
 app.use(express.static('public'));
@@ -206,6 +244,8 @@ app.use((req, res, next) => {
 });
 
 // Health check endpoint
+app.use(rateLimit);
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -255,6 +295,9 @@ app.post('/convert/jpg-to-pdf', upload.array('images', 20), async (req, res) => 
         
         // Read and process the image
         const imageBuffer = await fs.readFile(file.path);
+        if (!isJpegBuffer(imageBuffer)) {
+          throw new Error('Uploaded file is not a valid JPEG image.');
+        }
         console.log(`Read image buffer, size: ${imageBuffer.length}`);
         
         // Convert to JPEG if needed and resize if too large
@@ -336,7 +379,7 @@ app.post('/convert/jpg-to-pdf', upload.array('images', 20), async (req, res) => 
     console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false,
-      error: error.message || 'Failed to convert JPG to PDF. Please try again.' 
+      error: 'Failed to convert JPG to PDF. Please verify the uploaded files and try again.' 
     });
   } finally {
     // Clean up uploaded files
@@ -377,6 +420,9 @@ app.post('/convert/pdf-to-jpg', upload.single('pdf'), async (req, res) => {
     try {
       // Read the PDF file
       const pdfBytes = await fs.readFile(pdfPath);
+      if (!isPdfBuffer(pdfBytes)) {
+        throw new Error('Uploaded file is not a valid PDF.');
+      }
       console.log(`Read PDF buffer, size: ${pdfBytes.length}`);
       
       // Load PDF with pdf-lib
@@ -438,7 +484,7 @@ app.post('/convert/pdf-to-jpg', upload.single('pdf'), async (req, res) => {
     console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false,
-      error: error.message || 'Failed to convert PDF to JPG. Please try again.' 
+      error: 'Failed to convert PDF to JPG. Please verify the uploaded file and try again.' 
     });
   } finally {
     // Clean up uploaded file
@@ -555,7 +601,7 @@ app.post('/convert/multi-format', upload.array('files', 20), async (req, res) =>
     // Send proper JSON error response
     return res.status(500).json({
       success: false,
-      error: error.message || 'Conversion failed. Please try again.'
+      error: 'Conversion failed. Please verify the uploaded file and try again.'
     });
   } finally {
     // Clean up uploaded files
@@ -711,108 +757,27 @@ async function convertPdfToDocx(file) {
   });
 }
 
-// Download endpoint
-app.get('/download', async (req, res) => {
-  const filename = req.query.file;
-  console.log('Download request for file:', filename);
-  
-  if (!filename) {
-    console.log('No filename provided');
-    return res.status(400).json({
-      success: false,
-      error: 'Filename is required'
-    });
-  }
-  
-  const filePath = path.join(getTempDir(), 'downloads', filename);
-  console.log('Looking for file at:', filePath);
-  
-  try {
-    if (await fs.pathExists(filePath)) {
-      const stats = await fs.stat(filePath);
-      console.log(`File found, size: ${stats.size} bytes`);
-      
-      // Determine content type based on file extension
-      let contentType = 'application/octet-stream';
-      const ext = path.extname(filePath).toLowerCase();
-
-      if (ext === '.pdf') {
-        contentType = 'application/pdf';
-      } else if (ext === '.jpg' || ext === '.jpeg') {
-        contentType = 'image/jpeg';
-      } else if (ext === '.docx') {
-        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      } else if (ext === '.pptx') {
-        contentType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-      }
-      
-      // Set appropriate headers for download
-      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Length', stats.size);
-      
-      // Read the file and send it directly
-      const fileData = await fs.readFile(filePath);
-      console.log(`Sending file, ${fileData.length} bytes`);
-      return res.send(fileData);
-    } else {
-      console.error('File not found:', filePath);
-      
-      // List files in downloads directory for debugging
-      try {
-        const downloadDir = path.join(getTempDir(), 'downloads');
-        const files = await fs.readdir(downloadDir);
-        console.log('Available files in downloads:', files);
-      } catch (dirError) {
-        console.log('Could not read downloads directory:', dirError.message);
-      }
-      
-      res.status(404).json({
-        success: false,
-        error: 'File not found or has expired'
-      });
-    }
-  } catch (error) {
-    console.error('Error downloading file:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error downloading file'
-    });
-  }
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  console.error('Error stack:', err.stack);
-  
-  // Handle multer file size limit error
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({
-      success: false,
-      error: 'File size too large. Maximum file size is 100MB.'
-    });
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ success: false, error: 'File exceeds the 100MB limit.' });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_PART_COUNT') {
+      return res.status(413).json({ success: false, error: 'Too many uploaded files or form parts.' });
+    }
+    return res.status(400).json({ success: false, error: 'Invalid multipart upload.' });
   }
-  
-  // Handle multer errors
-  if (err.name === 'MulterError') {
-    return res.status(400).json({
-      success: false,
-      error: `Upload error: ${err.message}`
-    });
+
+  if (err && err.message === 'Only JPG, PDF, Word, and PowerPoint files are allowed!') {
+    return res.status(415).json({ success: false, error: err.message });
   }
-  
-  // Handle other errors
-  res.status(500).json({
-    success: false,
-    error: 'An unexpected error occurred. Please try again later.',
-    details: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+
+  console.error('Unhandled request error:', err);
+  return res.status(500).json({ success: false, error: 'Internal server error.' });
 });
 
-// Start server
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`Maximum file size: ${(100).toFixed(0)}MB`);
     console.log(`Temp directory: ${getTempDir()}`);
