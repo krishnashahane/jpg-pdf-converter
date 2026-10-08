@@ -5,10 +5,6 @@ const fs = require('fs-extra');
 const { PDFDocument, rgb } = require('pdf-lib');
 const sharp = require('sharp');
 const os = require('os');
-const mongoose = require('mongoose');
-const mammoth = require('mammoth');
-const officegen = require('officegen');
-const pdfParse = require('pdf-parse');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -157,19 +153,11 @@ const storage = multer.diskStorage({
 
 // File filter to allow JPG, PDF, Word, and PowerPoint files
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    'image/jpeg',
-    'image/jpg',
-    'application/pdf',
-    'application/msword', // .doc
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-    'application/vnd.ms-powerpoint', // .ppt
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation' // .pptx
-  ];
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'application/pdf'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only JPG, PDF, Word, and PowerPoint files are allowed!'), false);
+    cb(new Error('Only JPG and PDF files are allowed!'), false);
   }
 };
 
