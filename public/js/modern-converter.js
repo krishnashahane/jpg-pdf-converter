@@ -1,383 +1,314 @@
-// Modern Multi-Format Converter Script
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
-  initModernConverter();
+  initConverter();
 });
 
 function initNavigation() {
-  const toggle = document.getElementById('nav-toggle');
-  const menu = document.getElementById('nav-menu');
-  const navDropdown = document.querySelector('.nav-dropdown');
+  const toggle = document.getElementById("nav-toggle");
+  const menu = document.getElementById("nav-menu");
 
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      const isOpen = menu.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  if (!toggle || !menu) return;
+
+  toggle.addEventListener("click", () => {
+    const open = menu.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+
+  menu.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      menu.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
     });
-
-    menu.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        menu.classList.remove('open');
-        toggle.setAttribute('aria-expanded', 'false');
-      });
-    });
-  }
-
-  // Mobile dropdown toggle
-  if (navDropdown) {
-    const navLinkMain = navDropdown.querySelector('.nav-link-main');
-    if (navLinkMain && window.innerWidth <= 900) {
-      navLinkMain.addEventListener('click', (e) => {
-        e.preventDefault();
-        navDropdown.classList.toggle('open');
-      });
-    }
-  }
+  });
 }
 
-function initModernConverter() {
-  const sourceFormat = document.getElementById('source-format');
-  const targetFormat = document.getElementById('target-format');
-  const fileInput = document.getElementById('file-input');
-  const uploadArea = document.getElementById('upload-area');
-  const uploadTitle = document.getElementById('upload-title');
-  const uploadDescription = document.getElementById('upload-description');
-  const filePreviewContainer = document.getElementById('file-preview-container');
-  const filePreviews = document.getElementById('file-previews');
-  const clearAllBtn = document.getElementById('clear-all-btn');
-  const convertBtn = document.getElementById('convert-btn');
-  const progressContainer = document.getElementById('progress-container');
-  const progressText = document.getElementById('progress-text');
-  const progressPercentage = document.getElementById('progress-percentage');
-  const progressFill = document.getElementById('progress-fill');
-  const resultContainer = document.getElementById('result-container');
-  const downloadLink = document.getElementById('download-link');
-  const newConversionBtn = document.getElementById('new-conversion-btn');
+function initConverter() {
+  const sourceFormat = document.getElementById("source-format");
+  const targetFormat = document.getElementById("target-format");
+  const fileInput = document.getElementById("file-input");
+  const uploadArea = document.getElementById("upload-area");
+  const uploadTitle = document.getElementById("upload-title");
+  const uploadDescription = document.getElementById("upload-description");
+  const filePreviewContainer = document.getElementById("file-preview-container");
+  const filePreviews = document.getElementById("file-previews");
+  const clearAllBtn = document.getElementById("clear-all-btn");
+  const convertBtn = document.getElementById("convert-btn");
+  const progressContainer = document.getElementById("progress-container");
+  const progressText = document.getElementById("progress-text");
+  const progressPercentage = document.getElementById("progress-percentage");
+  const progressFill = document.getElementById("progress-fill");
+  const resultContainer = document.getElementById("result-container");
+  const downloadLink = document.getElementById("download-link");
+  const newConversionBtn = document.getElementById("new-conversion-btn");
 
-  // Skip if elements not present
-  if (!sourceFormat || !targetFormat || !fileInput || !uploadArea) {
+  if (
+    !sourceFormat ||
+    !targetFormat ||
+    !fileInput ||
+    !uploadArea ||
+    !uploadTitle ||
+    !uploadDescription ||
+    !filePreviews ||
+    !convertBtn
+  ) {
     return;
   }
 
-  let selectedFiles = [];
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
   const MAX_FILES = 20;
+  let selectedFiles = [];
+  let converting = false;
 
-  // Format configurations
-  const formatConfig = {
-    jpg: { accept: '.jpg,.jpeg', icon: 'fa-image', label: 'JPG/JPEG', multiple: true },
-    pdf: { accept: '.pdf', icon: 'fa-file-pdf', label: 'PDF', multiple: false },
-    docx: { accept: '.doc,.docx', icon: 'fa-file-word', label: 'Word', multiple: false },
-    pptx: { accept: '.ppt,.pptx', icon: 'fa-file-powerpoint', label: 'PowerPoint', multiple: false }
+  const configs = {
+    jpg: {
+      accept: ".jpg,.jpeg",
+      label: "JPG/JPEG",
+      multiple: true,
+      target: "pdf",
+    },
+    pdf: {
+      accept: ".pdf",
+      label: "PDF",
+      multiple: false,
+      target: "jpg",
+    },
   };
 
-  // Check URL parameters for preset formats
-  function checkURLParameters() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromParam = urlParams.get('from');
-    const toParam = urlParams.get('to');
-
-    if (fromParam && formatConfig[fromParam]) {
-      sourceFormat.value = fromParam;
-    }
-    if (toParam && formatConfig[toParam]) {
-      targetFormat.value = toParam;
-    }
-  }
-
-  // Update UI when format changes
-  function updateFormatUI() {
+  const renderOptions = () => {
     const source = sourceFormat.value;
-    const target = targetFormat.value;
-    const config = formatConfig[source];
+    const config = configs[source];
 
+    targetFormat.value = config.target;
+    targetFormat.disabled = true;
     fileInput.accept = config.accept;
     fileInput.multiple = config.multiple;
 
-    uploadTitle.textContent = `Drop your ${config.label} file${config.multiple ? 's' : ''} here`;
-    uploadDescription.textContent = config.multiple ?
-      `or click to browse (up to ${MAX_FILES} files)` :
-      'or click to browse';
+    uploadTitle.textContent = `Drop your ${config.label} file${config.multiple ? "s" : ""} here`;
+    uploadDescription.textContent = config.multiple
+      ? `or click to browse (up to ${MAX_FILES} images)`
+      : "or click to browse";
 
-    // Reset files when format changes
+    reset();
+  };
+
+  const reset = () => {
     selectedFiles = [];
-    filePreviews.innerHTML = '';
-    filePreviewContainer.style.display = 'none';
+    filePreviews.replaceChildren();
+    filePreviewContainer.style.display = "none";
+    resultContainer.style.display = "none";
+    progressContainer.style.display = "none";
     convertBtn.disabled = true;
-    resultContainer.style.display = 'none';
-  }
+    fileInput.value = "";
+  };
 
-  sourceFormat.addEventListener('change', updateFormatUI);
-  targetFormat.addEventListener('change', updateFormatUI);
+  const acceptedExtensions = () =>
+    configs[sourceFormat.value].accept
+      .split(",")
+      .map((value) => value.trim().toLowerCase());
 
-  // Load URL parameters first, then update UI
-  checkURLParameters();
-  updateFormatUI();
+  const handleFiles = (files) => {
+    const config = configs[sourceFormat.value];
+    const extensions = acceptedExtensions();
 
-  // Drag and drop handlers
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, preventDefaults, false);
-  });
-
-  ['dragenter', 'dragover'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, () => {
-      uploadArea.classList.add('drag-over');
-    }, false);
-  });
-
-  ['dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, () => {
-      uploadArea.classList.remove('drag-over');
-    }, false);
-  });
-
-  uploadArea.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    handleFiles(files);
-  }, false);
-
-  uploadArea.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', () => {
-    handleFiles(fileInput.files);
-  });
-
-  clearAllBtn.addEventListener('click', () => {
-    selectedFiles = [];
-    filePreviews.innerHTML = '';
-    filePreviewContainer.style.display = 'none';
-    convertBtn.disabled = true;
-    fileInput.value = '';
-  });
-
-  let isConverting = false;
-
-  convertBtn.addEventListener('click', async () => {
-    if (isConverting) return; // Prevent double-click
-    isConverting = true;
-    await performConversion();
-    isConverting = false;
-  });
-
-  newConversionBtn.addEventListener('click', () => {
-    selectedFiles = [];
-    filePreviews.innerHTML = '';
-    filePreviewContainer.style.display = 'none';
-    convertBtn.disabled = true;
-    resultContainer.style.display = 'none';
-    fileInput.value = '';
-  });
-
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function handleFiles(files) {
-    const source = sourceFormat.value;
-    const config = formatConfig[source];
-    const fileArray = Array.from(files);
-
-    // Validate files
-    const validFiles = fileArray.filter(file => {
-      // Check file type
-      const fileName = file.name.toLowerCase();
-      const acceptedExts = config.accept.split(',').map(ext => ext.trim());
-      const hasValidExt = acceptedExts.some(ext => fileName.endsWith(ext.replace('.', '')));
-
-      if (!hasValidExt) {
-        showNotification(`File ${file.name} is not a valid ${config.label} file.`, 'error');
+    const valid = Array.from(files).filter((file) => {
+      const lower = file.name.toLowerCase();
+      const validExtension = extensions.some((ext) => lower.endsWith(ext));
+      if (!validExtension) {
+        showNotification(`${file.name} is not a valid ${config.label} file.`);
         return false;
       }
-
-      // Check file size
+      if (!file.size) {
+        showNotification(`${file.name} is empty.`);
+        return false;
+      }
       if (file.size > MAX_FILE_SIZE) {
-        showNotification(`File ${file.name} exceeds 100MB limit.`, 'error');
+        showNotification(`${file.name} exceeds the 100MB limit.`);
         return false;
       }
-
-      if (file.size === 0) {
-        showNotification(`File ${file.name} is empty.`, 'error');
-        return false;
-      }
-
       return true;
     });
 
-    if (validFiles.length === 0) return;
+    if (!valid.length) return;
 
-    // Handle single vs multiple files
-    if (!config.multiple) {
-      selectedFiles = [validFiles[0]];
-    } else {
-      selectedFiles = [...selectedFiles, ...validFiles].slice(0, MAX_FILES);
-    }
+    selectedFiles = config.multiple
+      ? [...selectedFiles, ...valid].slice(0, MAX_FILES)
+      : [valid[0]];
 
-    renderFilePreviews();
+    renderPreviews();
     convertBtn.disabled = selectedFiles.length === 0;
-  }
+  };
 
-  function renderFilePreviews() {
-    filePreviews.innerHTML = '';
+  const renderPreviews = () => {
+    filePreviews.replaceChildren();
 
-    if (selectedFiles.length === 0) {
-      filePreviewContainer.style.display = 'none';
+    if (!selectedFiles.length) {
+      filePreviewContainer.style.display = "none";
       return;
     }
 
-    filePreviewContainer.style.display = 'block';
+    filePreviewContainer.style.display = "block";
 
     selectedFiles.forEach((file, index) => {
-      const item = document.createElement('div');
-      item.className = 'file-preview-item';
+      const item = document.createElement("div");
+      item.className = "file-preview-item";
 
-      const icon = getFileIcon(file.name);
-      const size = formatFileSize(file.size);
+      const icon = document.createElement("div");
+      icon.className = "file-icon";
+      const iconEl = document.createElement("i");
+      iconEl.className = `fas ${sourceFormat.value === "pdf" ? "fa-file-pdf" : "fa-file-image"}`;
+      icon.appendChild(iconEl);
 
-      item.innerHTML = `
-        <div class="file-icon">
-          <i class="fas ${icon}"></i>
-        </div>
-        <div class="file-info">
-          <div class="file-name">${file.name}</div>
-          <div class="file-size">${size}</div>
-        </div>
-        <button class="file-remove" data-index="${index}" title="Remove file">
-          <i class="fas fa-times"></i>
-        </button>
-      `;
+      const info = document.createElement("div");
+      info.className = "file-info";
 
+      const name = document.createElement("div");
+      name.className = "file-name";
+      name.textContent = file.name;
+
+      const size = document.createElement("div");
+      size.className = "file-size";
+      size.textContent = formatFileSize(file.size);
+
+      info.append(name, size);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "file-remove";
+      remove.dataset.index = String(index);
+      remove.title = "Remove file";
+      const removeIcon = document.createElement("i");
+      removeIcon.className = "fas fa-times";
+      remove.appendChild(removeIcon);
+
+      item.append(icon, info, remove);
       filePreviews.appendChild(item);
     });
 
-    // Add remove handlers
-    document.querySelectorAll('.file-remove').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const index = parseInt(e.currentTarget.dataset.index);
+    filePreviews.querySelectorAll(".file-remove").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number.parseInt(button.dataset.index, 10);
         selectedFiles.splice(index, 1);
-        renderFilePreviews();
+        renderPreviews();
         convertBtn.disabled = selectedFiles.length === 0;
       });
     });
-  }
+  };
 
-  function getFileIcon(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    const iconMap = {
-      jpg: 'fa-file-image',
-      jpeg: 'fa-file-image',
-      pdf: 'fa-file-pdf',
-      doc: 'fa-file-word',
-      docx: 'fa-file-word',
-      ppt: 'fa-file-powerpoint',
-      pptx: 'fa-file-powerpoint'
-    };
-    return iconMap[ext] || 'fa-file';
-  }
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  };
 
-  function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  }
+  const setProgress = (value, text) => {
+    const rounded = Math.round(value);
+    progressPercentage.textContent = `${rounded}%`;
+    progressFill.style.width = `${rounded}%`;
+    progressText.textContent = text;
+  };
 
-  async function performConversion() {
-    if (selectedFiles.length === 0) return;
+  const downloadResult = (data) => {
+    if (!data.downloadPath || !data.filename) {
+      throw new Error("The server returned an invalid conversion result.");
+    }
 
-    const source = sourceFormat.value;
-    const target = targetFormat.value;
+    downloadLink.href = data.downloadPath;
+    downloadLink.download = data.filename;
+    downloadLink.click();
+  };
 
-    // Show progress and disable all controls
+  const performConversion = async () => {
+    if (!selectedFiles.length || converting) return;
+
+    converting = true;
     convertBtn.disabled = true;
-    convertBtn.style.opacity = '0.5';
-    convertBtn.style.cursor = 'not-allowed';
-    progressContainer.style.display = 'block';
-    resultContainer.style.display = 'none';
+    progressContainer.style.display = "block";
+    resultContainer.style.display = "none";
+    setProgress(5, "Preparing files…");
 
     try {
       const formData = new FormData();
+      const source = sourceFormat.value;
+      const endpoint =
+        source === "jpg" ? "/convert/jpg-to-pdf" : "/convert/pdf-to-jpg";
 
-      selectedFiles.forEach(file => {
-        formData.append('files', file);
-      });
-
-      formData.append('sourceFormat', source);
-      formData.append('targetFormat', target);
-
-      // Simulate progress
-      let progress = 0;
-      const progressInterval = setInterval(() => {
-        progress += Math.random() * 30;
-        if (progress > 90) progress = 90;
-        updateProgress(progress);
-      }, 300);
-
-      const response = await fetch('/convert/multi-format', {
-        method: 'POST',
-        body: formData
-      });
-
-      clearInterval(progressInterval);
-      updateProgress(100);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', errorText);
-        try {
-          const error = JSON.parse(errorText);
-          throw new Error(error.error || 'Conversion failed');
-        } catch (e) {
-          throw new Error(errorText || 'Conversion failed');
-        }
+      if (source === "jpg") {
+        selectedFiles.forEach((file) => formData.append("images", file));
+      } else {
+        formData.append("pdf", selectedFiles[0]);
       }
 
-      const responseText = await response.text();
-      console.log('Server response:', responseText);
-      const result = JSON.parse(responseText);
+      setProgress(20, "Uploading…");
 
-      // Hide progress, show result
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("The server returned an invalid response.");
+      }
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Conversion failed.");
+      }
+
+      setProgress(100, "Complete");
+      downloadResult(data);
+
       setTimeout(() => {
-        progressContainer.style.display = 'none';
-        resultContainer.style.display = 'block';
-        downloadLink.href = result.downloadUrl;
-        downloadLink.download = result.filename || 'converted-file';
-
-        // Auto-download
-        downloadLink.click();
-      }, 500);
-
+        progressContainer.style.display = "none";
+        resultContainer.style.display = "block";
+      }, 250);
     } catch (error) {
-      console.error('Conversion error:', error);
-      showNotification(error.message || 'Conversion failed. Please try again.', 'error');
-      progressContainer.style.display = 'none';
+      showNotification(error instanceof Error ? error.message : "Conversion failed.");
+      progressContainer.style.display = "none";
+    } finally {
+      converting = false;
       convertBtn.disabled = selectedFiles.length === 0;
-      convertBtn.style.opacity = '1';
-      convertBtn.style.cursor = 'pointer';
     }
+  };
+
+  const showNotification = (message) => {
+    window.alert(message);
+  };
+
+  sourceFormat.addEventListener("change", renderOptions);
+  targetFormat.addEventListener("change", renderOptions);
+  clearAllBtn?.addEventListener("click", reset);
+  newConversionBtn?.addEventListener("click", reset);
+
+  ["dragenter", "dragover"].forEach((eventName) => {
+    uploadArea.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      uploadArea.classList.add("drag-over");
+    });
+  });
+
+  ["dragleave", "drop"].forEach((eventName) => {
+    uploadArea.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      uploadArea.classList.remove("drag-over");
+    });
+  });
+
+  uploadArea.addEventListener("drop", (event) => {
+    handleFiles(event.dataTransfer.files);
+  });
+
+  uploadArea.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => handleFiles(fileInput.files));
+  convertBtn.addEventListener("click", performConversion);
+
+  const params = new URLSearchParams(window.location.search);
+  const requestedSource = params.get("from");
+  if (requestedSource === "pdf" || requestedSource === "jpg") {
+    sourceFormat.value = requestedSource;
   }
 
-  function updateProgress(percent) {
-    const rounded = Math.round(percent);
-    progressPercentage.textContent = rounded + '%';
-    progressFill.style.width = rounded + '%';
-
-    if (percent < 30) {
-      progressText.textContent = 'Uploading files...';
-    } else if (percent < 70) {
-      progressText.textContent = 'Converting...';
-    } else if (percent < 100) {
-      progressText.textContent = 'Finalizing...';
-    } else {
-      progressText.textContent = 'Complete!';
-    }
-  }
-
-  function showNotification(message, type = 'info') {
-    // Simple alert for now - could be enhanced with a toast system
-    alert(message);
-  }
-}
+  renderOptions();
+});
