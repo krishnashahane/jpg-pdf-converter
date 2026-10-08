@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs-extra');
-const { PDFDocument, rgb } = require('pdf-lib');
+const { PDFDocument } = require('pdf-lib');
 const sharp = require('sharp');
 const os = require('os');
 
@@ -42,42 +42,6 @@ function isPdfBuffer(buffer) {
   return buffer.length >= 5 && buffer.subarray(0, 5).toString("ascii") === "%PDF-";
 }
 
-// Fail fast instead of buffering DB ops for 10s when MongoDB is not connected.
-mongoose.set('bufferCommands', false);
-
-// MongoDB connection - make it optional with automatic fallback
-const connectDB = async () => {
-  try {
-    // Try user's MongoDB URI first
-    if (process.env.MONGODB_URI) {
-      await mongoose.connect(process.env.MONGODB_URI);
-      console.log('MongoDB connected with user URI');
-      return;
-    }
-    
-    console.log('No MONGODB_URI set, running without database');
-  } catch (error) {
-    console.error('MongoDB connection error (continuing without DB):', error);
-  }
-};
-
-// File metadata schema
-const fileMetadataSchema = new mongoose.Schema({
-  filename: String,
-  conversionType: String,
-  timestamp: { type: Date, default: Date.now }
-});
-
-let FileMetadata;
-try {
-  FileMetadata = mongoose.model('FileMetadata', fileMetadataSchema);
-} catch (error) {
-  console.log('Running without MongoDB');
-}
-
-// Only write metadata when a live DB connection exists (readyState 1 = connected).
-const dbReady = () => Boolean(FileMetadata) && mongoose.connection.readyState === 1;
-
 // Return converted files inline as data URLs so a single request delivers the
 // result. Serverless instances have ephemeral /tmp, so a separate /download
 // request may miss the file; inlining makes downloads work every time.
@@ -85,8 +49,6 @@ const MIME_BY_EXT = {
   '.pdf': 'application/pdf',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
 };
 const toDataUrl = (buffer, filename) => {
   const mime = MIME_BY_EXT[path.extname(filename).toLowerCase()] || 'application/octet-stream';
@@ -113,9 +75,6 @@ async function renderPdfFirstPageToJpg(pdfBuffer) {
   await page.render({ canvasContext: ctx, viewport }).promise;
   return canvas.toBuffer('image/jpeg');
 }
-
-// Initialize MongoDB connection
-connectDB();
 
 // Use OS temp directory which works better across different environments
 const getTempDir = () => {
