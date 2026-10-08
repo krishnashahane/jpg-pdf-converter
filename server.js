@@ -299,22 +299,6 @@ app.post('/convert/jpg-to-pdf', upload.array('images', 20), async (req, res) => 
       throw new Error('PDF file was not created');
     }
     
-    // Store metadata in MongoDB
-    try {
-      if (dbReady()) {
-        for (const file of uploadedFiles) {
-          await FileMetadata.create({
-            filename: file.originalname,
-            conversionType: 'jpg-to-pdf',
-            timestamp: new Date().toISOString()
-          });
-        }
-        console.log('Metadata stored successfully');
-      }
-    } catch (dbError) {
-      console.error('Error storing metadata:', dbError);
-    }
-    
     res.json({
       success: true,
       message: `Successfully converted ${successCount} image(s) to PDF`,
@@ -398,20 +382,6 @@ app.post('/convert/pdf-to-jpg', upload.single('pdf'), async (req, res) => {
         console.log(`JPG file created successfully, size: ${stats.size} bytes`);
       } else {
         throw new Error('JPG file was not created');
-      }
-      
-      // Store metadata in MongoDB if available
-      try {
-        if (dbReady()) {
-          await FileMetadata.create({
-            filename: req.file.originalname,
-            conversionType: 'pdf-to-jpg',
-            timestamp: new Date().toISOString()
-          });
-          console.log('Metadata stored successfully');
-        }
-      } catch (dbError) {
-        console.error('Error storing metadata:', dbError);
       }
       
       res.json({
